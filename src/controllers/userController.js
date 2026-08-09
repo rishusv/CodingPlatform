@@ -54,9 +54,18 @@ const login = async (req,res) =>{
 
 const logout = (req,res) =>{
 
+    try{
+        //validate the token - we can use middleware
+        //token add in redis blocklist
+        // clear the cookie
+
+    }
+    catch(err){
+        console.error('Error :', err);
+        res.status(400).json({ error: err.message });
+    }
     
-    res.clearCookie('token');
-    res.status(200).json({ message: "Logout successful" });
+    
 }
 
 module.exports = { register, login, logout };
