@@ -4,8 +4,10 @@ require('dotenv').config();
 const main = require('./config/db.js');
 const authRouter = require('./routes/userAuth');
 const redisClient = require('./config/redis');
+const cookieParser = require('cookie-parser');
 
 app.use(express.json());
+app.use(cookieParser());
 app.use('/user', authRouter);
 
 const intializeConnection = async () => {
@@ -22,15 +24,3 @@ const intializeConnection = async () => {
 
 intializeConnection();
 
-// main()
-//   .then(() => {
-//     app.listen(PORT, () => {
-//       console.log(`Server listening on port ${PORT}`);
-//     });
-//   })
-//   .catch((err) => {
-//     console.error('Database connection failed:', err.message);
-//     app.listen(PORT, () => {
-//       console.log(`Server listening on port ${PORT} without DB connection`);
-//     });
-//   });

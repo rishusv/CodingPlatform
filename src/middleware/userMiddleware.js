@@ -1,42 +1,40 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/users');
+const redisClient = require('../config/redis');
 
-const userMiddleware = (req, res, next) => {
-    const token = req.cookies.token;
-
-    if (!token) {
-        return res.status(401).json({ error: 'Unauthorized: No token provided' });
-    }
-
+const userMiddleware = async (req, res, next) => {
     try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET_KEY || 'dev-secret'); 
+        const { token } = req.cookies || {};
 
-        const {_id} = payload;
+        if (!token) {
+            return res.status(401).json({ error: 'Unauthorized: No token provided' });
+        }
+
+        const payload = jwt.verify(token, process.env.JWT_SECRET_KEY || process.env.JWT_SECRET || 'dev-secret');
+        const { _id } = payload;
 
         if (!_id) {
             throw new Error('Invalid token: Missing user ID');
         }
-        const result = User.findById(_id);
 
-        if(!result){
+        const result = await User.findById(_id);
+
+        if (!result) {
             throw new Error('User not found');
         }
-        
-        //Redis blocklist check can be added here to check if the token is blacklisted
 
-        const isBlocked = await redisClient.exists(`token:{token}`);
+        // Redis blocklist check: look for the exact token key
+        const isBlocked = await redisClient.exists(`token:${token}`);
         if (isBlocked) {
             throw new Error('Token is blocked');
         }
-        
+
         req.result = result; // Attach user info to request object for further use
         next();
-        
-    }
-    catch (err) {
+    } catch (err) {
         console.error('Error :', err);
         return res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
-
 };
 
 module.exports = userMiddleware;
