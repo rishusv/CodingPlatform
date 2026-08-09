@@ -75,8 +75,7 @@ const logout = async (req, res) => {
         res.clearCookie('token');
 
         //creates a date one second in the past. that is why we do -1000
-        res.send("Looged out successfully");
-
+        res.status(200).json({ message: "Logged out successfully" });
 
     }
     catch (err) {
