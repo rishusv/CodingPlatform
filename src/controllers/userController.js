@@ -7,19 +7,22 @@ const jwt = require('jsonwebtoken');
 const register = async (req,res) =>{
     try{
         validate(req.body);
-        const {firstName,emailId,password} = req.body;
+        const { firstName, lastName, emailId, password } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await User.create({ firstName, emailId, password: hashedPassword });
+        const user = await User.create({ firstName, lastName, emailId, password: hashedPassword });
 
-        const token = jwt.sign({_id: user._id, emailId: user.emailId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({_id: user._id, emailId: user.emailId }, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '1h' });
         res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
 
         res.status(201).json({ message: "User registered successfully" });
 
     } catch (err) {
         console.error('Error :', err);
+        if (err.code === 11000) {
+            return res.status(409).json({ error: 'Email already exists' });
+        }
         res.status(400).json({ error: err.message });
     }
 }
@@ -38,7 +41,7 @@ const login = async (req,res) =>{
             return res.status(401).json({ error: "Invalid password" });
         }
 
-        const token = jwt.sign({_id: user._id, emailId: user.emailId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({_id: user._id, emailId: user.emailId }, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '1h' });
         res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
 
         res.status(200).json({ message: "Login successful" });
@@ -48,3 +51,12 @@ const login = async (req,res) =>{
         res.status(400).json({ error: err.message });
     }
 }
+
+const logout = (req,res) =>{
+
+    
+    res.clearCookie('token');
+    res.status(200).json({ message: "Logout successful" });
+}
+
+module.exports = { register, login, logout };

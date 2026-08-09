@@ -5,18 +5,18 @@ const userSchema = new Schema({
     firstName: {
         type: String,
         required: true,
-        minLength: 3,
-        maxLenght: 10
+        minlength: 3,
+        maxlength: 10
     },
     lastName: {
-        ype: String,
-        required: true,
-        minLength: 3,
-        maxLenght: 10
-    },
-    email: {
         type: String,
-        equired: true,
+        required: true,
+        minlength: 2,
+        maxlength: 10
+    },
+    emailId: {
+        type: String,
+        required: true,
         unique: true,
         trim: true,
         immutable: true
