@@ -24,3 +24,27 @@ const register = async (req,res) =>{
     }
 }
 
+const login = async (req,res) =>{
+    try{
+        const {emailId,password} = req.body;
+
+        const user = await User.findOne({ emailId });
+        if(!user){
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if(!isPasswordValid){
+            return res.status(401).json({ error: "Invalid password" });
+        }
+
+        const token = jwt.sign({_id: user._id, emailId: user.emailId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
+
+        res.status(200).json({ message: "Login successful" });
+
+    } catch (err) {
+        console.error('Error :', err);
+        res.status(400).json({ error: err.message });
+    }
+}
