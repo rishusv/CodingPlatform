@@ -11,11 +11,12 @@ const register = async (req, res) => {
         const { firstName, lastName, emailId, password } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        req.body.user = "user"; // Set the role to "user" by default
 
         const user = await User.create({ firstName, lastName, emailId, password: hashedPassword });
 
         const jwtSecret = process.env.JWT_SECRET_KEY || process.env.JWT_SECRET || 'dev-secret';
-        const token = jwt.sign({ _id: user._id, emailId: user.emailId }, jwtSecret, { expiresIn: '1h' });
+        const token = jwt.sign({ _id: user._id, emailId: user.emailId, role:'user' }, jwtSecret, { expiresIn: '1h' });
         res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
 
         res.status(201).json({ message: "User registered successfully" });
@@ -44,7 +45,7 @@ const login = async (req, res) => {
         }
 
         const jwtSecret = process.env.JWT_SECRET_KEY || process.env.JWT_SECRET || 'dev-secret';
-        const token = jwt.sign({ _id: user._id, emailId: user.emailId }, jwtSecret, { expiresIn: '1h' });
+        const token = jwt.sign({ _id: user._id, emailId: user.emailId, role: user.role }, jwtSecret, { expiresIn: '1h' });
         res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
 
         res.status(200).json({ message: "Login successful" });
@@ -86,4 +87,32 @@ const logout = async (req, res) => {
 
 }
 
-module.exports = { register, login, logout };
+const adminRegister = async (req, res) => {
+    try {
+         validate(req.body);
+        const { firstName, lastName, emailId, password } = req.body;
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        req.body.role = "admin"; // Set the role to "admin" by default
+
+        const user = await User.create({ firstName, lastName, emailId, password: hashedPassword, role: "admin" });
+
+        const jwtSecret = process.env.JWT_SECRET_KEY;
+
+        const token = jwt.sign({ _id: user._id, emailId: user.emailId, role:'admin' }, 
+            jwtSecret, { expiresIn: '1h' });
+
+        res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
+
+        res.status(201).json({ message: "User registered successfully" });
+
+    } catch (err) {
+        console.error('Error :', err);
+        if (err.code === 11000) {
+            return res.status(409).json({ error: 'Email already exists' });
+        }
+        res.status(400).json({ error: err.message });
+    }
+}
+
+module.exports = { register, login, logout, adminRegister };

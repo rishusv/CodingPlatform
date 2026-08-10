@@ -2,10 +2,10 @@ const validator = require('validator');
 
 const validate = (data) => {
     const allowedFields = ['firstName', 'lastName', 'emailId', 'password'];
-    const isAllowed = Object.keys(data).every((key) => allowedFields.includes(key));
+    const hasAllAllowedFields = allowedFields.every((key) => Object.prototype.hasOwnProperty.call(data, key));
 
-    if (!isAllowed) {
-        throw new Error('Invalid fields in the request body');
+    if (!hasAllAllowedFields) {
+        throw new Error('All fields are required');
     }
 
     if (!data.firstName || !data.lastName || !data.emailId || !data.password) {
