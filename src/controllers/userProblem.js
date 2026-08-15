@@ -1,4 +1,4 @@
-const {getLanguageId, submitBatch} = require('../utils/getLanguageId');
+const {getLanguageId, submitBatch , submitToken} = require('../utils/problemUtility');
 const Problem = require('../models/proble');
 
 const createProblem = async (req, res) => {
@@ -29,6 +29,19 @@ const createProblem = async (req, res) => {
 
             const submitResult = await submitBatch(submissions);
 
+            const resultToken = submitResult.map((result) => result.token);
+
+            const testResult = await submitToken(resultToken);
+
+            for(const test of testResult)
+            {
+                if(test.status_id !=3)
+                {
+                    res.status(400).send("Error occured");
+                }
+            }
+
+
             
 
             //source code
@@ -40,7 +53,7 @@ const createProblem = async (req, res) => {
 
         //intergrate Judge0 API here to validate the reference solution and test cases before saving the problem
 
-
+        //we can store it in our DB
 
         const userId = req.result._id; // Get the user ID from the request object
 
