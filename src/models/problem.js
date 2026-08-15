@@ -72,7 +72,7 @@ const problemSchema = new Schema({
             language: {
                 type: String,
                 required: true,
-                enum: ['python', 'javascript', 'java', 'c++'],
+                enum: ['javascript', 'java', 'c++'],
             },
             completeCode: {
                 type: String,
